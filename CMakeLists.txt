@@ -76,6 +76,8 @@ set(IRREMOTE_RA4M2_RECV_BUFFER_SIZE "1024" CACHE STRING
     "IR receive demo capture buffer entries. Use a large value for A/C protocols.")
 set(IRREMOTE_RA4M2_RECV_TIMEOUT_MS "50" CACHE STRING
     "IR receive demo frame timeout in milliseconds. Use a larger value for A/C protocols.")
+set(IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE "1024" CACHE STRING
+    "Maximum number of captured raw timing entries exposed through GDB debug globals.")
 set(IRREMOTE_RA4M2_DEMO_TX_PIN "BSP_IO_PORT_00_PIN_05" CACHE STRING
     "FSP BSP_IO_PORT_xx_PIN_yy token used by the optional IR send demo.")
 set(IRREMOTE_RA4M2_DEMO_RX_PIN "BSP_IO_PORT_00_PIN_05" CACHE STRING
@@ -86,6 +88,7 @@ set(IRREMOTEESP8266_UPSTREAM_SOURCES
     ${IRREMOTEESP8266_DIR}/src/IRtext.cpp
     ${IRREMOTEESP8266_DIR}/src/IRtimer.cpp
     ${IRREMOTEESP8266_DIR}/src/IRutils.cpp
+    ${IRREMOTEESP8266_DIR}/src/IRac.cpp
     ${IRREMOTEESP8266_DIR}/src/ir_Aiwa.cpp
     ${IRREMOTEESP8266_DIR}/src/ir_Airton.cpp
     ${IRREMOTEESP8266_DIR}/src/ir_Airwell.cpp
@@ -182,6 +185,11 @@ set_source_files_properties(
 
 set_source_files_properties(
     ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/IRrecv_RA4M2.cpp
+    PROPERTIES COMPILE_OPTIONS "-Wno-aggregate-return"
+)
+
+set_source_files_properties(
+    ${CMAKE_CURRENT_LIST_DIR}/src/hal_entry.cpp
     PROPERTIES COMPILE_OPTIONS "-Wno-aggregate-return"
 )
 
@@ -445,6 +453,7 @@ target_compile_definitions(${PROJECT_NAME}.elf
     IRREMOTE_RA4M2_RECV_SYSTICK_US=${IRREMOTE_RA4M2_RECV_SYSTICK_US}
     IRREMOTE_RA4M2_RECV_BUFFER_SIZE=${IRREMOTE_RA4M2_RECV_BUFFER_SIZE}
     IRREMOTE_RA4M2_RECV_TIMEOUT_MS=${IRREMOTE_RA4M2_RECV_TIMEOUT_MS}
+    IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE=${IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE}
     IRREMOTE_RA4M2_DEMO_RX_PIN=${IRREMOTE_RA4M2_DEMO_RX_PIN}
     IRREMOTE_RA4M2_DEMO_TX_PIN=${IRREMOTE_RA4M2_DEMO_TX_PIN}
 )

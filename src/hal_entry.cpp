@@ -1,7 +1,9 @@
 #include "hal_data.h"
 #include "Arduino.h"
+#include "IRac.h"
 #include "IRrecv.h"
 #include "IRsend.h"
+#include "ir_Coolix.h"
 
 #ifndef IRREMOTE_RA4M2_SEND_DEMO
 #define IRREMOTE_RA4M2_SEND_DEMO 0
@@ -39,6 +41,143 @@ volatile bool g_irremote_last_overflow = false;
 volatile uint32_t g_irremote_decode_count = 0;
 volatile uint16_t g_irremote_last_raw_dump_len = 0;
 volatile uint16_t g_irremote_last_rawbuf[IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE] = {};
+
+volatile bool g_irremote_ac_state_valid = false;
+volatile decode_type_t g_irremote_ac_protocol = UNKNOWN;
+volatile int16_t g_irremote_ac_model = -1;
+volatile bool g_irremote_ac_power = false;
+volatile int16_t g_irremote_ac_mode = -1;
+volatile float g_irremote_ac_degrees = 0.0f;
+volatile bool g_irremote_ac_celsius = true;
+volatile int16_t g_irremote_ac_fanspeed = 0;
+volatile int16_t g_irremote_ac_swingv = -1;
+volatile int16_t g_irremote_ac_swingh = -1;
+volatile bool g_irremote_ac_quiet = false;
+volatile bool g_irremote_ac_turbo = false;
+volatile bool g_irremote_ac_econo = false;
+volatile bool g_irremote_ac_light = false;
+volatile bool g_irremote_ac_filter = false;
+volatile bool g_irremote_ac_clean = false;
+volatile bool g_irremote_ac_beep = false;
+volatile int16_t g_irremote_ac_sleep = -1;
+volatile int16_t g_irremote_ac_clock = -1;
+volatile int16_t g_irremote_ac_command = 0;
+volatile bool g_irremote_ac_ifeel = false;
+volatile float g_irremote_ac_sensor_temperature = 0.0f;
+
+#if IRREMOTE_RA4M2_RECV_DEMO
+namespace
+{
+stdAc::state_t g_previous_ac_state;
+bool g_previous_ac_state_valid = false;
+
+bool is_coolix_family(const decode_type_t protocol)
+{
+    return (protocol == COOLIX) || (protocol == COOLIX48);
+}
+
+const stdAc::state_t *previous_ac_state_for(const decode_type_t protocol)
+{
+    if (!g_previous_ac_state_valid)
+    {
+        return NULL;
+    }
+
+    if (g_previous_ac_state.protocol == protocol)
+    {
+        return &g_previous_ac_state;
+    }
+
+    if (is_coolix_family(protocol) && is_coolix_family(g_previous_ac_state.protocol))
+    {
+        return &g_previous_ac_state;
+    }
+
+    return NULL;
+}
+
+void clear_ac_debug_state(void)
+{
+    g_irremote_ac_state_valid = false;
+    g_irremote_ac_protocol = UNKNOWN;
+    g_irremote_ac_model = -1;
+    g_irremote_ac_power = false;
+    g_irremote_ac_mode = -1;
+    g_irremote_ac_degrees = 0.0f;
+    g_irremote_ac_celsius = true;
+    g_irremote_ac_fanspeed = 0;
+    g_irremote_ac_swingv = -1;
+    g_irremote_ac_swingh = -1;
+    g_irremote_ac_quiet = false;
+    g_irremote_ac_turbo = false;
+    g_irremote_ac_econo = false;
+    g_irremote_ac_light = false;
+    g_irremote_ac_filter = false;
+    g_irremote_ac_clean = false;
+    g_irremote_ac_beep = false;
+    g_irremote_ac_sleep = -1;
+    g_irremote_ac_clock = -1;
+    g_irremote_ac_command = 0;
+    g_irremote_ac_ifeel = false;
+    g_irremote_ac_sensor_temperature = 0.0f;
+}
+
+void publish_ac_debug_state(const stdAc::state_t &state)
+{
+    g_irremote_ac_protocol = state.protocol;
+    g_irremote_ac_model = state.model;
+    g_irremote_ac_power = state.power;
+    g_irremote_ac_mode = static_cast<int16_t>(state.mode);
+    g_irremote_ac_degrees = state.degrees;
+    g_irremote_ac_celsius = state.celsius;
+    g_irremote_ac_fanspeed = static_cast<int16_t>(state.fanspeed);
+    g_irremote_ac_swingv = static_cast<int16_t>(state.swingv);
+    g_irremote_ac_swingh = static_cast<int16_t>(state.swingh);
+    g_irremote_ac_quiet = state.quiet;
+    g_irremote_ac_turbo = state.turbo;
+    g_irremote_ac_econo = state.econo;
+    g_irremote_ac_light = state.light;
+    g_irremote_ac_filter = state.filter;
+    g_irremote_ac_clean = state.clean;
+    g_irremote_ac_beep = state.beep;
+    g_irremote_ac_sleep = state.sleep;
+    g_irremote_ac_clock = state.clock;
+    g_irremote_ac_command = static_cast<int16_t>(state.command);
+    g_irremote_ac_ifeel = state.iFeel;
+    g_irremote_ac_sensor_temperature = state.sensorTemperature;
+    g_irremote_ac_state_valid = true;
+}
+
+void update_ac_debug_state(const decode_results *results)
+{
+    stdAc::state_t state;
+    const stdAc::state_t *previous = previous_ac_state_for(results->decode_type);
+
+    if (IRAcUtils::decodeToState(results, &state, previous))
+    {
+        g_previous_ac_state = state;
+        g_previous_ac_state_valid = true;
+        publish_ac_debug_state(state);
+    }
+#if DECODE_COOLIX48
+    else if (results->decode_type == COOLIX48)
+    {
+        IRCoolixAC ac(kGpioUnused);
+        ac.setRawFromCoolix48(results->value);
+        state = ac.toCommon(previous);
+        state.protocol = COOLIX48;
+        g_previous_ac_state = state;
+        g_previous_ac_state_valid = true;
+        publish_ac_debug_state(state);
+    }
+#endif
+    else
+    {
+        clear_ac_debug_state();
+    }
+}
+}
+#endif
 
 #if (1 == BSP_MULTICORE_PROJECT) && BSP_TZ_SECURE_BUILD
 bsp_ipc_semaphore_handle_t g_core_start_semaphore =
@@ -116,6 +255,7 @@ void hal_entry(void)
                 g_irremote_last_rawbuf[i] = results.rawbuf[i];
             }
 
+            update_ac_debug_state(&results);
             g_irremote_decode_count++;
             irrecv.resume();
         }
