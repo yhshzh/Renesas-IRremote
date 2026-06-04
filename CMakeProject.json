@@ -1,0 +1,76 @@
+{
+  "cpuType": "cortex-m33",
+  "deviceName": "R7FA4M2AC3CFP",
+  "coreName": "CM33",
+  "compilerType": "GCC",
+  "deviceCommand": "R7FA4M2AC",
+  "buildArtifactType": "EXECUTABLE",
+  "activeBuildConfiguration": "Release",
+  "buildConfigurations": {
+    "Debug": {
+      "definedMacros": [
+        "_RA_CORE=CM33",
+        "_RA_ORDINAL=1"
+      ],
+      "sourcePaths": [
+        "ra_gen",
+        "src",
+        "ra"
+      ],
+      "excludedFilePaths": [],
+      "includePaths": [
+        "ra_gen",
+        "ra_cfg/fsp_cfg/bsp",
+        "ra_cfg/fsp_cfg",
+        "src",
+        "ra/fsp/inc",
+        "ra/fsp/inc/api",
+        "ra/fsp/inc/instances",
+        "ra/arm/CMSIS_6/CMSIS/Core/Include"
+      ],
+      "libraryPaths": [],
+      "libraryNames": [],
+      "objectFiles": [],
+      "targetDeviceName": "R7FA4M2AC3CFP",
+      "buildConfigurationName": "Release",
+      "isPreBuildContentGenEnabled": false,
+      "isPostBuildContentGenEnabled": false,
+      "isTargetDeviceSupportsTrustZone": true,
+      "buildOptionsMap": {}
+    },
+    "Release": {
+      "definedMacros": [
+        "_RENESAS_RA_",
+        "_RA_CORE=CM33",
+        "_RA_ORDINAL=1"
+      ],
+      "sourcePaths": [
+        "ra_gen",
+        "src",
+        "ra"
+      ],
+      "excludedFilePaths": [],
+      "includePaths": [
+        "ra_gen",
+        "ra_cfg/fsp_cfg/bsp",
+        "ra_cfg/fsp_cfg",
+        "src",
+        "ra/fsp/inc",
+        "ra/fsp/inc/api",
+        "ra/fsp/inc/instances",
+        "ra/arm/CMSIS_6/CMSIS/Core/Include"
+      ],
+      "libraryPaths": [],
+      "libraryNames": [],
+      "objectFiles": [],
+      "linkerScript": "script/fsp.ld",
+      "targetDeviceName": "R7FA4M2AC3CFP",
+      "entrySymbol": "Reset_Handler",
+      "buildConfigurationName": "Release",
+      "isPreBuildContentGenEnabled": false,
+      "isPostBuildContentGenEnabled": false,
+      "isTargetDeviceSupportsTrustZone": true,
+      "buildOptionsMap": {}
+    }
+  }
+}

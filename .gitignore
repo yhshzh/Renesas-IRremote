@@ -1,0 +1,48 @@
+# Build outputs
+/build/
+/cmake-build-*/
+/out/
+
+# CMake/Ninja files generated when configuring in the source tree
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/build.ninja
+/.ninja_deps
+/.ninja_log
+/compile_commands.json
+
+# Toolchain/generated binary artifacts
+*.o
+*.obj
+*.d
+*.su
+*.elf
+*.map
+*.srec
+*.hex
+*.bin
+*.lst
+*.sbd
+
+# Local IDE/tool caches
+/.cache/
+/.clangd/
+/.ccls-cache/
+
+# User-local dependency checkouts
+/third_party/*
+!/third_party/README.md
+
+# Python/local tooling environments
+/.venv/
+/.env/
+__pycache__/
+*.py[cod]
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
