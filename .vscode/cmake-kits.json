@@ -1,5 +1,21 @@
 [
   {
+    "name": "ARM GCC - Ninja - RECV_DEMO",
+    "description": "Kit with toolchain file and toolchain path in environment",
+    "toolchainFile": "${workspaceFolder}/cmake/gcc.cmake",
+    "cmakeSettings": {
+      "ARM_TOOLCHAIN_PATH": "${env:ARM_GCC_TOOLCHAIN_PATH}",
+      "IRREMOTE_RA4M2_RECV_DEMO": "ON",
+      "IRREMOTE_RA4M2_SEND_DEMO": "OFF",
+      "IRREMOTE_RA4M2_RECV_BUFFER_SIZE": "1024",
+      "IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE": "1024"
+    },
+    "preferredGenerator": {
+      "name": "Ninja"
+    },
+    "isTrusted": true
+  },
+  {
     "name": "ARM GCC - Ninja",
     "description": "Kit with toolchain file and toolchain path in environment",
     "toolchainFile": "${workspaceFolder}/cmake/gcc.cmake",
@@ -8,18 +24,6 @@
     },
     "preferredGenerator": {
       "name": "Ninja"
-    },
-    "isTrusted": true
-  },
-  {
-    "name": "ARM GCC - MinGW Makefiles",
-    "description": "Kit with toolchain file and toolchain path in environment",
-    "toolchainFile": "${workspaceFolder}/cmake/gcc.cmake",
-    "cmakeSettings": {
-      "ARM_TOOLCHAIN_PATH": "${env:ARM_GCC_TOOLCHAIN_PATH}"
-    },
-    "preferredGenerator": {
-      "name": "MinGW Makefiles"
     },
     "isTrusted": true
   }

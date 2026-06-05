@@ -1,15 +1,16 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "name": "Renesas GDB Debugging",
-      "type": "renesas-hardware",
-      "request": "launch",
-      "target": {
-        "device": "R7FA4M2AC",
-        "deviceFamily": "RA",
-        "debuggerType": "SEGGERJLINKARM"
-      }
+      "name": "RA4M2 attach pyOCD",
+      "type": "cortex-debug",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/Debug/Renesas_IRremote.elf",
+      "servertype": "external",
+      "gdbTarget": "localhost:3333",
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "raw"
     }
-  ],
-  "version": "0.2.0"
+  ]
 }

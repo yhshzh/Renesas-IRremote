@@ -11,20 +11,22 @@
     "Unix Makefiles"
   ],
   "cmake.debugConfig": {
-    "name": "Renesas GDB Debugging",
-    "type": "renesas-hardware",
-    "request": "launch",
-    "target": {
-      "device": "R7FA4M2AC",
-      "deviceFamily": "RA",
-      "debuggerType": "SEGGERJLINKARM"
+      "name": "RA4M2 attach pyOCD",
+      "type": "cortex-debug",
+      "request": "attach",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/Debug/Renesas_IRremote.elf",
+      "servertype": "external",
+      "gdbTarget": "localhost:3333",
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "raw"
     },
-    "cwd": "${command:renesas.debug.supportFolder}"
-  },
   "clangd.arguments": [
     "--query-driver=${env:ARM_GCC_TOOLCHAIN_PATH}*",
     "--compile-commands-dir=${workspaceFolder}",
     "--background-index"
   ],
-  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+  "cortex-debug.pyocdPath": "${workspaceFolder}/.venv/bin/pyocd",
+  "cortex-debug.gdbPath": "arm-none-eabi-gdb"
 }

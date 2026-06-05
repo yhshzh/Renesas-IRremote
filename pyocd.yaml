@@ -1,0 +1,6 @@
+pack:
+  - Renesas.RA_DFP.6.4.0.pack
+
+target_override: r7fa4m2ac
+
+frequency: 50000

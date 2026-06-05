@@ -46,3 +46,9 @@ Thumbs.db
 *~
 *.swp
 *.swo
+
+# CMSIS / vendor device packs
+*.pack
+.packs/
+packs/
+CMSIS-Packs/
