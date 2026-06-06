@@ -343,6 +343,27 @@ void AirconIrService::state_json(char *out, size_t out_size, const char *kind) c
              sensor);
 }
 
+void AirconIrService::status(AirconStatus *out) const
+{
+    if (NULL == out)
+    {
+        return;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->valid = current_state_valid_;
+    out->learning = learning_;
+    snprintf(out->protocol, sizeof(out->protocol), "%s", typeToString(current_state_.protocol).c_str());
+    out->power = current_state_.power;
+    snprintf(out->mode, sizeof(out->mode), "%s", mode_name(current_state_.mode));
+    out->degrees = current_state_.degrees;
+    snprintf(out->fanspeed, sizeof(out->fanspeed), "%s", fan_name(current_state_.fanspeed));
+    snprintf(out->frame_protocol, sizeof(out->frame_protocol), "%s", typeToString(last_frame_.decode_type).c_str());
+    out->frame_bits = last_frame_.bits;
+    out->frame_rawlen = last_frame_.rawlen;
+    out->frame_overflow = last_frame_.overflow;
+}
+
 bool AirconIrService::decode_ac_state(const decode_results &results, stdAc::state_t *state)
 {
     if (NULL == state)

@@ -3,6 +3,7 @@
 #include "IRac.h"
 #include "IRrecv.h"
 #include "IRsend.h"
+#include "app/app_board_config.h"
 #include "app/remote_controller.h"
 #include "ir_Coolix.h"
 
@@ -12,14 +13,6 @@
 
 #ifndef IRREMOTE_RA4M2_RECV_DEMO
 #define IRREMOTE_RA4M2_RECV_DEMO 0
-#endif
-
-#ifndef IRREMOTE_RA4M2_DEMO_TX_PIN
-#define IRREMOTE_RA4M2_DEMO_TX_PIN BSP_IO_PORT_00_PIN_05
-#endif
-
-#ifndef IRREMOTE_RA4M2_DEMO_RX_PIN
-#define IRREMOTE_RA4M2_DEMO_RX_PIN BSP_IO_PORT_00_PIN_05
 #endif
 
 #ifndef IRREMOTE_RA4M2_RECV_BUFFER_SIZE

@@ -240,6 +240,33 @@ void EspAtTransport::configure_wifi(const char *ssid, const char *password)
     schedule_wifi_info_query(2000U, 12U);
 }
 
+void EspAtTransport::reset_wifi()
+{
+    send_at_wait("AT+CWQAP", 1000U, false);
+    set_wifi_ip(station_ip_, sizeof(station_ip_), "");
+    send_at_wait("AT+CIPSERVER=0", 1000U, false);
+
+    char command[48];
+    snprintf(command, sizeof(command), "AT+CIPSERVER=1,%u", static_cast<unsigned int>(APP_TRANSPORT_TCP_PORT));
+    send_at_wait(command, 1000U);
+    tcp_link_active_ = false;
+    schedule_wifi_info_query(200U, 3U);
+}
+
+void EspAtTransport::reset_ble()
+{
+    if (last_ble_conn_ >= 0)
+    {
+        char command[40];
+        snprintf(command, sizeof(command), "AT+BLEDISCONN=%d", last_ble_conn_);
+        send_at_wait(command, 1000U, false);
+    }
+
+    send_at_wait("AT+BLEADVSTOP", 1000U, false);
+    send_at_wait("AT+BLEADVSTART", 1000U);
+    last_ble_conn_ = -1;
+}
+
 void EspAtTransport::wifi_json(char *out, size_t out_size) const
 {
     if ((NULL == out) || (0U == out_size))
@@ -256,6 +283,21 @@ void EspAtTransport::wifi_json(char *out, size_t out_size) const
              "{\"ap_ip\":\"%s\",\"station_ip\":\"%s\"}",
              ap_ip_escaped,
              station_ip_escaped);
+}
+
+void EspAtTransport::status(TransportStatus *out) const
+{
+    if (NULL == out)
+    {
+        return;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->tcp_connected = tcp_link_active_;
+    out->ble_connected = (last_ble_conn_ >= 0);
+    copy_text(out->ap_ip, sizeof(out->ap_ip), ap_ip_);
+    copy_text(out->station_ip, sizeof(out->station_ip), station_ip_);
+    out->at_error_count = at_error_count_;
 }
 
 void EspAtTransport::at_diagnostics_json(char *out, size_t out_size) const

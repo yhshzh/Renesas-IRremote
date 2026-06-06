@@ -38,6 +38,7 @@
 RemoteController::RemoteController() :
     transport_(),
     ir_(),
+    ui_(),
     last_wifi_status_version_(0U)
 {
 }
@@ -45,6 +46,7 @@ RemoteController::RemoteController() :
 void RemoteController::begin()
 {
     ir_.begin();
+    ui_.begin();
     transport_.begin();
     last_wifi_status_version_ = transport_.wifi_status_version();
 }
@@ -68,10 +70,10 @@ void RemoteController::poll()
     if (wifi_status_version != last_wifi_status_version_)
     {
         last_wifi_status_version_ = wifi_status_version;
-        char payload[900];
-        make_state_json(payload, sizeof(payload), "state");
-        transport_.broadcast(payload);
+        broadcast_state("state");
     }
+
+    handle_local_action(ui_.poll(ir_, transport_));
 }
 
 void RemoteController::handle_packet(const TransportPacket &packet)
@@ -132,9 +134,58 @@ void RemoteController::handle_packet(const TransportPacket &packet)
         send_ack(packet.link, "wifi_connecting");
         transport_.configure_wifi(ssid, password);
     }
+    else if (0 == strcmp(kind, "wifi_reset"))
+    {
+        send_ack(packet.link, "wifi_resetting");
+        transport_.reset_wifi();
+        last_wifi_status_version_ = transport_.wifi_status_version();
+        broadcast_state("state");
+    }
+    else if (0 == strcmp(kind, "ble_reset"))
+    {
+        send_ack(packet.link, "ble_resetting");
+        transport_.reset_ble();
+        broadcast_state("state");
+    }
     else
     {
         send_error(packet.link, "unknown_kind");
+    }
+}
+
+void RemoteController::handle_local_action(LocalUiAction action)
+{
+    switch (action)
+    {
+        case LocalUiAction::StartLearning:
+            ir_.start_learning();
+            ui_.notify("LEARN START");
+            broadcast_ack("learn_started");
+            break;
+        case LocalUiAction::StopLearning:
+            ir_.stop_learning();
+            ui_.notify("LEARN STOP");
+            broadcast_ack("learn_stopped");
+            broadcast_state("state");
+            break;
+        case LocalUiAction::ResetBle:
+            ui_.notify("RESET BLE");
+            transport_.reset_ble();
+            broadcast_state("state");
+            break;
+        case LocalUiAction::ResetWifi:
+            ui_.notify("RESET WIFI");
+            transport_.reset_wifi();
+            last_wifi_status_version_ = transport_.wifi_status_version();
+            broadcast_state("state");
+            break;
+        case LocalUiAction::BroadcastState:
+            ui_.notify("SYNCED");
+            broadcast_state("state");
+            break;
+        case LocalUiAction::None:
+        default:
+            break;
     }
 }
 
@@ -205,6 +256,22 @@ void RemoteController::make_diag_json(char *payload, size_t payload_size) const
              static_cast<unsigned int>(APP_IR_RECV_BUFFER_SIZE),
              static_cast<unsigned int>(APP_IR_RECV_TIMEOUT_MS),
              wifi);
+}
+
+void RemoteController::broadcast_state(const char *kind)
+{
+    char payload[900];
+    make_state_json(payload, sizeof(payload), kind);
+    transport_.broadcast(payload);
+}
+
+void RemoteController::broadcast_ack(const char *kind)
+{
+    char payload[96];
+    char escaped[48];
+    app_json_escape(kind, escaped, sizeof(escaped));
+    snprintf(payload, sizeof(payload), "{\"kind\":\"%s\",\"learning\":%s}\n", escaped, ir_.is_learning() ? "true" : "false");
+    transport_.broadcast(payload);
 }
 
 void RemoteController::send_error(const TransportLink &link, const char *code)

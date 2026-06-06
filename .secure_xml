@@ -61,6 +61,10 @@
       <configSetting altId="p110.gpio_mode.gpio_mode_peripheral" configurationId="p110.gpio_mode"/>
       <configSetting altId="p111.gpio_mode.gpio_mode_peripheral" configurationId="p111.gpio_mode"/>
       <configSetting altId="p112.gpio_mode.gpio_mode_peripheral" configurationId="p112.gpio_mode"/>
+      <configSetting altId="p113.output.low" configurationId="p113"/>
+      <configSetting altId="p113.gpio_mode.gpio_mode_out.low" configurationId="p113.gpio_mode"/>
+      <configSetting altId="p114.output.low" configurationId="p114"/>
+      <configSetting altId="p114.gpio_mode.gpio_mode_out.low" configurationId="p114.gpio_mode"/>
       <configSetting altId="p115.gpio_mode.gpio_mode_peripheral" configurationId="p115.gpio_mode"/>
       <configSetting altId="p206.gpio_mode.gpio_mode_peripheral" configurationId="p206.gpio_mode"/>
       <configSetting altId="p207.gpio_mode.gpio_mode_peripheral" configurationId="p207.gpio_mode"/>
@@ -89,10 +93,10 @@
       <configSetting altId="sci4.txd.p207" configurationId="sci4.txd" peripheral="SCI4"/>
       <configSetting altId="sci9.rxd.p601" configurationId="sci9.rxd" isUsedByDriver="true" peripheral="SCI9"/>
       <configSetting altId="sci9.txd.p602" configurationId="sci9.txd" isUsedByDriver="true" peripheral="SCI9"/>
-      <configSetting altId="spi0.miso.p110" configurationId="spi0.miso" peripheral="SPI0"/>
-      <configSetting altId="spi0.mosi.p109" configurationId="spi0.mosi" peripheral="SPI0"/>
-      <configSetting altId="spi0.rspck.p111" configurationId="spi0.rspck" peripheral="SPI0"/>
-      <configSetting altId="spi0.ssl0.p112" configurationId="spi0.ssl0" peripheral="SPI0"/>
+      <configSetting altId="spi0.miso.p110" configurationId="spi0.miso" isUsedByDriver="true" peripheral="SPI0"/>
+      <configSetting altId="spi0.mosi.p109" configurationId="spi0.mosi" isUsedByDriver="true" peripheral="SPI0"/>
+      <configSetting altId="spi0.rspck.p111" configurationId="spi0.rspck" isUsedByDriver="true" peripheral="SPI0"/>
+      <configSetting altId="spi0.ssl0.p112" configurationId="spi0.ssl0" isUsedByDriver="true" peripheral="SPI0"/>
     </pincfg>
   </raPinConfiguration>
 </raConfiguration>

@@ -8,6 +8,7 @@ Firmware for an RA4M2-based IR learning and transmission board. The board uses a
 - Transmit air-conditioner IR commands using IRremoteESP8266
 - WiFi AP/TCP control via ESP-AT
 - BLE GATT control via ESP-AT
+- SSD1306 OLED status UI with three-button local control
 - JSON line protocol shared by WiFi and BLE
 - e2studio, VSCode, and command-line CMake build support
 
@@ -23,6 +24,14 @@ The current board has the IR and ESP-AT peripherals onboard. The firmware uses t
 | IR transmit carrier | `P115` | `g_ir_tx_gpt` / GPT4 GTIOCA | 38 kHz PWM |
 | ESP-AT UART RX | `P601/RXD9` | `g_esp_uart` / SCI9 | 115200 8N1 |
 | ESP-AT UART TX | `P602/TXD9` | `g_esp_uart` / SCI9 | 115200 8N1 |
+| OLED MOSI | `P109` | `g_oled_spi` / SPI0 MOSI | SSD1306 4-wire SPI |
+| OLED CLK | `P111` | `g_oled_spi` / SPI0 RSPCK | SSD1306 4-wire SPI |
+| OLED CS | `P112` | `g_oled_spi` / SPI0 SSL0 | Active low |
+| OLED DC | `P113` | GPIO output | Data/command select |
+| OLED RES | `P114` | GPIO output | Reset |
+| Key Select | `P400` | GPIO input | Active low |
+| Key Confirm | `P401` | GPIO input | Active low |
+| Key Back | `P402` | GPIO input | Active low |
 
 Default network names:
 
@@ -93,18 +102,17 @@ cmake --build build/App
 
 ## Configuration
 
-Main CMake options:
+Board-level pins and default app parameters are kept in `src/app/app_board_config.h`.
+FSP peripheral setup is stored in `configuration.xml` and generated into `ra_gen/`.
+
+The main build switches are:
 
 ```text
-APP_IR_RX_PIN=BSP_IO_PORT_00_PIN_05
-APP_IR_TX_PIN=BSP_IO_PORT_01_PIN_15
-APP_TRANSPORT_UART_BAUD=115200
-APP_TRANSPORT_TCP_PORT=8765
 IRREMOTE_RA4M2_USE_IRQ_RECV=ON
 IRREMOTE_RA4M2_USE_GPT_SEND=ON
+IRREMOTE_RA4M2_RECV_DEMO=OFF
+IRREMOTE_RA4M2_SEND_DEMO=OFF
 ```
-
-If the board hardware changes, update both FSP (`configuration.xml`) and the matching CMake options.
 
 ## Flash and Debug
 

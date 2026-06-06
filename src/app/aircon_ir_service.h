@@ -6,22 +6,7 @@
 
 #include "IRac.h"
 #include "IRrecv.h"
-
-#ifndef APP_IR_TX_PIN
-#define APP_IR_TX_PIN BSP_IO_PORT_00_PIN_05
-#endif
-
-#ifndef APP_IR_RX_PIN
-#define APP_IR_RX_PIN BSP_IO_PORT_00_PIN_05
-#endif
-
-#ifndef APP_IR_RECV_BUFFER_SIZE
-#define APP_IR_RECV_BUFFER_SIZE 1024
-#endif
-
-#ifndef APP_IR_RECV_TIMEOUT_MS
-#define APP_IR_RECV_TIMEOUT_MS 50
-#endif
+#include "app/app_board_config.h"
 
 struct IrFrameInfo
 {
@@ -30,6 +15,21 @@ struct IrFrameInfo
     uint16_t bits;
     uint16_t rawlen;
     bool overflow;
+};
+
+struct AirconStatus
+{
+    bool valid;
+    bool learning;
+    char protocol[24];
+    bool power;
+    char mode[12];
+    float degrees;
+    char fanspeed[16];
+    char frame_protocol[24];
+    uint16_t frame_bits;
+    uint16_t frame_rawlen;
+    bool frame_overflow;
 };
 
 class AirconIrService
@@ -44,6 +44,7 @@ public:
     bool poll();
     bool apply_state_json(const char *json, char *error, size_t error_size);
     void state_json(char *out, size_t out_size, const char *kind) const;
+    void status(AirconStatus *out) const;
 
 private:
     bool decode_ac_state(const decode_results &results, stdAc::state_t *state);

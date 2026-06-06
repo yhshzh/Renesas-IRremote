@@ -137,8 +137,8 @@ FSP Configuration
       P110 53 SPI0_MISOA - Low None "Peripheral mode" CMOS None "AGT3: AGTEE3; DEBUG0: TDI; GPT_OPS0: GTOVLO; GPT1: GTIOC1B; ICU0: IRQ03; SCI2: CTSRTS2; SCI9: RXD9; SCI9: SCL9; SPI0: MISOA" - IO - - 
       P111 54 SPI0_RSPCKA - Low None "Peripheral mode" CMOS None "AGT5: AGTOA5; GPT3: GTIOC3A; ICU0: IRQ04; SCI2: SCK2; SCI9: SCK9; SPI0: RSPCKA" - IO - - 
       P112 55 SPI0_SSLA0 - Low - "Peripheral mode" CMOS None "AGT5: AGTOB5; GPT3: GTIOC3B; QSPI0: QSSL; SCI1: SCK1; SCI2: SDA2; SCI2: TXD2; SPI0: SSLA0; SSI0: SSIBCK0" - IO - - 
-      P113 56 - - - - Disabled - - "AGT5: AGTEE5; GPT2: GTIOC2A; SCI2: RXD2; SCI2: SCL2; SSI0: SSILRCK0" - None - - 
-      P114 57 - - - - Disabled - - "AGT5: AGTIO5; GPT2: GTIOC2B; SCI9: CTS9; SSI0: SSIRXD0" - None - - 
+      P113 56 GPIO - Low - "Output mode (Initial Low)" CMOS - "AGT5: AGTEE5; GPT2: GTIOC2A; SCI2: RXD2; SCI2: SCL2; SSI0: SSILRCK0" - IO - - 
+      P114 57 GPIO - Low - "Output mode (Initial Low)" CMOS - "AGT5: AGTIO5; GPT2: GTIOC2B; SCI9: CTS9; SSI0: SSIRXD0" - IO - - 
       P115 58 GPT4_GTIOC4A - Low - "Peripheral mode" CMOS None "GPT4: GTIOC4A; SSI0: SSITXD0" - IO - - 
       P200 40 - - - - Disabled - - "ICU0: NMI" - None - - 
       P201 39 - - - - Disabled - - "SYSTEM0: MD" - None - - 
@@ -238,6 +238,11 @@ FSP Configuration
     Flow Control Support: Disable
     RS-485 Support: Disable
     IrDA Support: Disabled
+    
+  Module "SPI (r_spi)"
+    Parameter Checking: Default (BSP)
+    Enable Support for using a transfer API: Enabled
+    Enable Transmitting from RXI Interrupt: Disabled
     
   HAL
     Instance "g_ioport I/O Port (r_ioport)"
@@ -352,4 +357,30 @@ FSP Configuration
       Interrupts: Transmit Data Empty Interrupt Priority: Priority 3
       Interrupts: Transmit End Interrupt Priority: Priority 3
       Interrupts: Error Interrupt Priority: Priority 3
+      
+    Instance "g_oled_spi SPI (r_spi)"
+      Name: g_oled_spi
+      Channel: 0
+      Receive Interrupt Priority: Priority 12
+      Transmit Buffer Empty Interrupt Priority: Priority 12
+      Transfer Complete Interrupt Priority: Priority 12
+      Error Interrupt Priority: Priority 12
+      Operating Mode: Master
+      Clock Phase: Data sampling on odd edge, data variation on even edge
+      Clock Polarity: Low when idle
+      Mode Fault Error: Disable
+      Bit Order: MSB First
+      Callback: spi_callback
+      SPI Mode: Clock Synchronous Operation
+      SPI burst transfer without delay between frames: Disable
+      Full or Transmit Only Mode: Full Duplex
+      Slave Select Polarity: Active Low
+      Select SSL(Slave Select): SSL0
+      MOSI Idle State: MOSI Idle Value Fixing Disable
+      Parity Mode: Disabled
+      Byte Swapping: Disable
+      Bitrate: 1000000
+      Clock Delay: 1 Clock
+      SSL Negation Delay: 1 Clock
+      Next Access Delay: 1 Clock
       

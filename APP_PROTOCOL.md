@@ -50,37 +50,11 @@ ESP-AT 默认服务/特征：
 接受标准 16-bit UUID 和完整 Bluetooth base 128-bit UUID 两种形式。
 
 固件启动时会用 `AT+BLEGATTSCHAR?` 读取 ESP-AT GATT 表，并根据 UUID
-自动更新运行时 index：`0xC304` 用作 App 写入，`0xC305` 用作通知。下面的
-CMake 参数只是 fallback 默认值；如果你的 AT 固件 GATT 表不同，也可以显式
-覆盖：
-
-```cpp
-APP_BLE_GATT_SERVICE_INDEX
-APP_BLE_GATT_WRITE_CHAR_INDEX
-APP_BLE_GATT_NOTIFY_CHAR_INDEX
-```
-
-这些宏都已暴露为 CMake cache 参数，不需要直接改源码。当前硬件红外配置为：
+自动更新运行时 index：`0xC304` 用作 App 写入，`0xC305` 用作通知。默认
+index 和板级参数在 `src/app/app_board_config.h` 中维护。当前硬件红外配置为：
 
 - 红外接收头：`P005` / `BSP_IO_PORT_00_PIN_05` / ICU `IRQ10`
 - 红外发射头：`P115` / `BSP_IO_PORT_01_PIN_15` / GPT4 `GTIOCA`
-
-如果自制板上红外接收头和红外发射管使用了不同引脚，配置时覆盖：
-
-```sh
--DAPP_IR_RX_PIN=BSP_IO_PORT_xx_PIN_yy
--DAPP_IR_TX_PIN=BSP_IO_PORT_xx_PIN_yy
-```
-
-ESP-AT 串口和网络参数也可覆盖：
-
-```sh
--DAPP_TRANSPORT_UART_BAUD=115200
--DAPP_TRANSPORT_TCP_PORT=8765
--DAPP_BLE_GATT_SERVICE_INDEX=1
--DAPP_BLE_GATT_WRITE_CHAR_INDEX=5
--DAPP_BLE_GATT_NOTIFY_CHAR_INDEX=6
-```
 
 BLE 和 TCP 输入都按结尾 `\n` 分帧。App 可能因为 BLE MTU 较小把一条 JSON
 命令拆成多次 GATT write，MCU 会缓存分片，直到收到带 `\n` 的最后一片后
@@ -122,8 +96,6 @@ BLE 输入只接受配置的 write characteristic index；ESP-AT 在开启通知
 -DIRREMOTE_RA4M2_USE_IRQ_RECV=ON
 -DIRREMOTE_RA4M2_USE_SYSTICK_RECV=OFF
 -DIRREMOTE_RA4M2_USE_GPT_SEND=ON
--DAPP_IR_RX_PIN=BSP_IO_PORT_00_PIN_05
--DAPP_IR_TX_PIN=BSP_IO_PORT_01_PIN_15
 ```
 
 生成内容应包含 `ra/fsp/src/r_icu/r_icu.c`、`ra/fsp/src/r_gpt/r_gpt.c`，
@@ -173,6 +145,13 @@ BLE 输入只接受配置的 write characteristic index；ESP-AT 在开启通知
 `wifi.ap_ip` 是 SoftAP 地址。固件检测到 `ap_ip` 或 `station_ip` 变化时
 会自动广播一次 `kind=state`。`kind=wifi_connecting` 只表示开发板已经开始
 执行连接流程，最终是否入网以随后状态里的 `wifi.station_ip` 为准。
+
+重置 WiFi 或 BLE：
+
+```json
+{"kind":"wifi_reset"}
+{"kind":"ble_reset"}
+```
 
 设置并发射空调状态：
 
@@ -306,24 +285,12 @@ BLE 输入只接受配置的 write characteristic index；ESP-AT 在开启通知
 
 ## 构建
 
-从 workspace 根目录构建 App 固件：
+从固件项目目录构建 App 固件：
 
 ```sh
-cmake -S Renesas_IRremote -B Renesas_IRremote/build/App -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE=$PWD/Renesas_IRremote/cmake/gcc.cmake \
-  -DARM_TOOLCHAIN_PATH=/usr/bin \
-  -DCMAKE_BUILD_TYPE=Debug \
-  -DIRREMOTE_RA4M2_RECV_DEMO=OFF \
-  -DIRREMOTE_RA4M2_SEND_DEMO=OFF \
-  -DIRREMOTE_RA4M2_USE_IRQ_RECV=ON \
-  -DIRREMOTE_RA4M2_USE_SYSTICK_RECV=OFF \
-  -DIRREMOTE_RA4M2_USE_GPT_SEND=ON \
-  -DIRREMOTE_RA4M2_RECV_BUFFER_SIZE=1024 \
-  -DIRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE=1024 \
-  -DAPP_IR_RX_PIN=BSP_IO_PORT_00_PIN_05 \
-  -DAPP_IR_TX_PIN=BSP_IO_PORT_01_PIN_15
-
-cmake --build Renesas_IRremote/build/App -- -j2
+cd Renesas_IRremote
+cmake --preset Debug
+cmake --build --preset Debug
 ```
 
 输出：

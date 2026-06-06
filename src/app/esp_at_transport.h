@@ -4,31 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "app/app_board_config.h"
 #include "app/ra_sci9_uart.h"
-
-#ifndef APP_TRANSPORT_TCP_PORT
-#define APP_TRANSPORT_TCP_PORT 8765
-#endif
-
-#ifndef APP_TRANSPORT_UART_BAUD
-#define APP_TRANSPORT_UART_BAUD 115200
-#endif
-
-#ifndef APP_BLE_GATT_SERVICE_INDEX
-#define APP_BLE_GATT_SERVICE_INDEX 1
-#endif
-
-#ifndef APP_BLE_GATT_WRITE_CHAR_INDEX
-#define APP_BLE_GATT_WRITE_CHAR_INDEX 5
-#endif
-
-#ifndef APP_BLE_GATT_NOTIFY_CHAR_INDEX
-#define APP_BLE_GATT_NOTIFY_CHAR_INDEX 6
-#endif
-
-#ifndef APP_BLE_NOTIFY_CHUNK_SIZE
-#define APP_BLE_NOTIFY_CHUNK_SIZE 20
-#endif
 
 enum class TransportKind
 {
@@ -48,6 +25,15 @@ struct TransportPacket
     char payload[768];
 };
 
+struct TransportStatus
+{
+    bool tcp_connected;
+    bool ble_connected;
+    char ap_ip[24];
+    char station_ip[24];
+    uint32_t at_error_count;
+};
+
 class EspAtTransport
 {
 public:
@@ -58,8 +44,11 @@ public:
     void send(const TransportLink &link, const char *payload);
     void broadcast(const char *payload);
     void configure_wifi(const char *ssid, const char *password);
+    void reset_wifi();
+    void reset_ble();
     void wifi_json(char *out, size_t out_size) const;
     void at_diagnostics_json(char *out, size_t out_size) const;
+    void status(TransportStatus *out) const;
     uint32_t wifi_status_version() const;
     int ble_service_index() const;
     int ble_write_char_index() const;
