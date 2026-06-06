@@ -69,7 +69,9 @@ endif()
 
 option(IRREMOTE_RA4M2_SEND_DEMO "Send a NEC demo frame from hal_entry()." OFF)
 option(IRREMOTE_RA4M2_RECV_DEMO "Decode IR frames from hal_entry()." OFF)
-option(IRREMOTE_RA4M2_USE_SYSTICK_RECV "Use SysTick interrupt sampling for IR receive instead of blocking polling." ON)
+option(IRREMOTE_RA4M2_USE_IRQ_RECV "Use an FSP External IRQ instance for IR receive edge capture." ON)
+option(IRREMOTE_RA4M2_USE_SYSTICK_RECV "Use SysTick interrupt sampling for IR receive instead of blocking polling." OFF)
+option(IRREMOTE_RA4M2_USE_GPT_SEND "Use an FSP GPT PWM instance for IR carrier generation." ON)
 set(IRREMOTE_RA4M2_RECV_SYSTICK_US "50" CACHE STRING
     "SysTick receive sampling period in microseconds when IRREMOTE_RA4M2_USE_SYSTICK_RECV is ON.")
 set(IRREMOTE_RA4M2_RECV_BUFFER_SIZE "1024" CACHE STRING
@@ -78,13 +80,36 @@ set(IRREMOTE_RA4M2_RECV_TIMEOUT_MS "50" CACHE STRING
     "IR receive demo frame timeout in milliseconds. Use a larger value for A/C protocols.")
 set(IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE "1024" CACHE STRING
     "Maximum number of captured raw timing entries exposed through GDB debug globals.")
-set(IRREMOTE_RA4M2_DEMO_TX_PIN "BSP_IO_PORT_00_PIN_05" CACHE STRING
+set(IRREMOTE_RA4M2_DEMO_TX_PIN "BSP_IO_PORT_01_PIN_15" CACHE STRING
     "FSP BSP_IO_PORT_xx_PIN_yy token used by the optional IR send demo.")
 set(IRREMOTE_RA4M2_DEMO_RX_PIN "BSP_IO_PORT_00_PIN_05" CACHE STRING
     "FSP BSP_IO_PORT_xx_PIN_yy token used by the optional IR receive demo.")
+set(APP_IR_TX_PIN "BSP_IO_PORT_01_PIN_15" CACHE STRING
+    "FSP BSP_IO_PORT_xx_PIN_yy token used by the App IR transmitter.")
+set(APP_IR_RX_PIN "BSP_IO_PORT_00_PIN_05" CACHE STRING
+    "FSP BSP_IO_PORT_xx_PIN_yy token used by the App IR receiver.")
+set(IRREMOTE_RA4M2_GPT_SEND_INSTANCE "g_ir_tx_gpt" CACHE STRING
+    "FSP timer_instance_t symbol used for the IR carrier GPT PWM output.")
+set(IRREMOTE_RA4M2_GPT_SEND_IO_PIN "GPT_IO_PIN_GTIOCA" CACHE STRING
+    "FSP gpt_io_pin_t value used for the IR carrier PWM output.")
+set(APP_IR_RECV_BUFFER_SIZE "1024" CACHE STRING
+    "App IR receive capture buffer entries. Use a large value for A/C protocols.")
+set(APP_IR_RECV_TIMEOUT_MS "50" CACHE STRING
+    "App IR receive frame timeout in milliseconds.")
+set(APP_TRANSPORT_UART_BAUD "115200" CACHE STRING
+    "SCI9 baud rate for the ESP-AT module.")
+set(APP_TRANSPORT_TCP_PORT "8765" CACHE STRING
+    "TCP server port exposed by ESP-AT.")
+set(APP_BLE_GATT_SERVICE_INDEX "1" CACHE STRING
+    "ESP-AT GATT server service index used by the App service.")
+set(APP_BLE_GATT_WRITE_CHAR_INDEX "5" CACHE STRING
+    "ESP-AT GATT server characteristic index used for App writes.")
+set(APP_BLE_GATT_NOTIFY_CHAR_INDEX "6" CACHE STRING
+    "ESP-AT GATT server characteristic index used for notifications.")
+set(APP_BLE_NOTIFY_CHUNK_SIZE "20" CACHE STRING
+    "Maximum BLE notification payload chunk length.")
 
 set(IRREMOTEESP8266_UPSTREAM_SOURCES
-    ${IRREMOTEESP8266_DIR}/src/IRsend.cpp
     ${IRREMOTEESP8266_DIR}/src/IRtext.cpp
     ${IRREMOTEESP8266_DIR}/src/IRtimer.cpp
     ${IRREMOTEESP8266_DIR}/src/IRutils.cpp
@@ -173,7 +198,9 @@ set(IRREMOTEESP8266_UPSTREAM_SOURCES
 
 set(IRREMOTEESP8266_RA_SOURCES
     ${IRREMOTEESP8266_UPSTREAM_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/IRsend_RA4M2.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/IRrecv_RA4M2.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/ir_ra4m2_gpt_carrier.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/Arduino.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/newlib_stubs.c
 )
@@ -184,12 +211,22 @@ set_source_files_properties(
 )
 
 set_source_files_properties(
+    ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/IRsend_RA4M2.cpp
+    PROPERTIES COMPILE_OPTIONS "-Wno-conversion;-Wno-shadow;-Wno-unused-parameter;-Wno-aggregate-return;-Wno-float-conversion;-Wno-float-equal;-Wno-missing-declarations"
+)
+
+set_source_files_properties(
     ${CMAKE_CURRENT_LIST_DIR}/src/ir_ra4m2/IRrecv_RA4M2.cpp
     PROPERTIES COMPILE_OPTIONS "-Wno-aggregate-return"
 )
 
 set_source_files_properties(
     ${CMAKE_CURRENT_LIST_DIR}/src/hal_entry.cpp
+    PROPERTIES COMPILE_OPTIONS "-Wno-aggregate-return"
+)
+
+set_source_files_properties(
+    ${CMAKE_CURRENT_LIST_DIR}/src/app/aircon_ir_service.cpp
     PROPERTIES COMPILE_OPTIONS "-Wno-aggregate-return"
 )
 
@@ -449,11 +486,25 @@ target_compile_definitions(${PROJECT_NAME}.elf
     DECODE_ZEPEAL=true
     IRREMOTE_RA4M2_RECV_DEMO=$<BOOL:${IRREMOTE_RA4M2_RECV_DEMO}>
     IRREMOTE_RA4M2_SEND_DEMO=$<BOOL:${IRREMOTE_RA4M2_SEND_DEMO}>
+    IRREMOTE_RA4M2_USE_IRQ_RECV=$<BOOL:${IRREMOTE_RA4M2_USE_IRQ_RECV}>
     IRREMOTE_RA4M2_USE_SYSTICK_RECV=$<BOOL:${IRREMOTE_RA4M2_USE_SYSTICK_RECV}>
+    IRREMOTE_RA4M2_USE_GPT_SEND=$<BOOL:${IRREMOTE_RA4M2_USE_GPT_SEND}>
+    IRREMOTE_RA4M2_GPT_SEND_INSTANCE=${IRREMOTE_RA4M2_GPT_SEND_INSTANCE}
+    IRREMOTE_RA4M2_GPT_SEND_IO_PIN=${IRREMOTE_RA4M2_GPT_SEND_IO_PIN}
     IRREMOTE_RA4M2_RECV_SYSTICK_US=${IRREMOTE_RA4M2_RECV_SYSTICK_US}
     IRREMOTE_RA4M2_RECV_BUFFER_SIZE=${IRREMOTE_RA4M2_RECV_BUFFER_SIZE}
     IRREMOTE_RA4M2_RECV_TIMEOUT_MS=${IRREMOTE_RA4M2_RECV_TIMEOUT_MS}
     IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE=${IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE}
     IRREMOTE_RA4M2_DEMO_RX_PIN=${IRREMOTE_RA4M2_DEMO_RX_PIN}
     IRREMOTE_RA4M2_DEMO_TX_PIN=${IRREMOTE_RA4M2_DEMO_TX_PIN}
+    APP_IR_TX_PIN=${APP_IR_TX_PIN}
+    APP_IR_RX_PIN=${APP_IR_RX_PIN}
+    APP_IR_RECV_BUFFER_SIZE=${APP_IR_RECV_BUFFER_SIZE}
+    APP_IR_RECV_TIMEOUT_MS=${APP_IR_RECV_TIMEOUT_MS}
+    APP_TRANSPORT_UART_BAUD=${APP_TRANSPORT_UART_BAUD}
+    APP_TRANSPORT_TCP_PORT=${APP_TRANSPORT_TCP_PORT}
+    APP_BLE_GATT_SERVICE_INDEX=${APP_BLE_GATT_SERVICE_INDEX}
+    APP_BLE_GATT_WRITE_CHAR_INDEX=${APP_BLE_GATT_WRITE_CHAR_INDEX}
+    APP_BLE_GATT_NOTIFY_CHAR_INDEX=${APP_BLE_GATT_NOTIFY_CHAR_INDEX}
+    APP_BLE_NOTIFY_CHUNK_SIZE=${APP_BLE_NOTIFY_CHUNK_SIZE}
 )

@@ -117,7 +117,7 @@ FSP Configuration
       P002 98 - - - - Disabled - - "ADC0: AN002; ICU0: IRQ08" - None - - 
       P003 97 - - - - Disabled - - "ADC0: AN003" - None - - 
       P004 96 - - - - Disabled - - "ADC0: AN004; ICU0: IRQ09" - None - - 
-      P005 95 GPIO - - None "Input mode" - None "ADC0: AN005; ICU0: IRQ10" - IO - - 
+      P005 95 ICU0_IRQ10 - - IRQ10 "IRQ mode" - None "ADC0: AN005; ICU0: IRQ10" - IO - - 
       P006 94 - - - - Disabled - - "ADC0: AN006; ICU0: IRQ11" - None - - 
       P007 93 - - - - Disabled - - "ADC0: AN007" - None - - 
       P008 92 - - - - Disabled - - "ADC0: AN008; ICU0: IRQ12" - None - - 
@@ -223,6 +223,22 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     CCD Support: Not Supported
     
+  Module "Timer, General PWM (r_gpt)"
+    Parameter Checking: Default (BSP)
+    Pin Output Support: Enabled
+    Write Protect Enable: Disabled
+    
+  Module "External IRQ (r_icu)"
+    Parameter Checking: Default (BSP)
+    
+  Module "UART (r_sci_uart)"
+    Parameter Checking: Default (BSP)
+    FIFO Support: Disable
+    DTC Support: Disable
+    Flow Control Support: Disable
+    RS-485 Support: Disable
+    IrDA Support: Disabled
+    
   HAL
     Instance "g_ioport I/O Port (r_ioport)"
       Name: g_ioport
@@ -231,4 +247,109 @@ FSP Configuration
       3rd Port ELC Trigger Source: Disabled
       4th Port ELC Trigger Source: Disabled
       Pin Configuration Name: g_bsp_pin_cfg
+      
+    Instance "g_ir_tx_gpt Timer, General PWM (r_gpt)"
+      General: Name: g_ir_tx_gpt
+      General: Channel: 4
+      General: Mode: Saw-wave PWM
+      General: Period: 38000
+      General: Compare Match: Compare Match A: Status: Disabled
+      General: Compare Match: Compare Match A: Compare match value: 0x10000
+      General: Compare Match: Compare Match B: Status: Disabled
+      General: Compare Match: Compare Match B: Compare match value: 0x10000
+      General: Compare Match: Compare Match C: Status: Disabled
+      General: Compare Match: Compare Match C: Compare match value: 0x10000
+      General: Compare Match: Compare Match D: Status: Disabled
+      General: Compare Match: Compare Match D: Compare match value: 0x10000
+      General: Compare Match: Compare Match E: Status: Disabled
+      General: Compare Match: Compare Match E: Compare match value: 0x10000
+      General: Compare Match: Compare Match F: Status: Disabled
+      General: Compare Match: Compare Match F: Compare match value: 0x10000
+      General: Period Unit: Hertz
+      Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
+      Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
+      Output: Custom Waveform: GTIOA: Compare Match Output Level: Pin Level Retain
+      Output: Custom Waveform: GTIOA: Retain Output Level at Count Stop: Disabled
+      Output: Custom Waveform: GTIOB: Initial Output Level: Pin Level Low
+      Output: Custom Waveform: GTIOB: Cycle End Output Level: Pin Level Retain
+      Output: Custom Waveform: GTIOB: Compare Match Output Level: Pin Level Retain
+      Output: Custom Waveform: GTIOB: Retain Output Level at Count Stop: Disabled
+      Output: Custom Waveform: Custom Waveform Enable: Disabled
+      Output: Duty Cycle Percent (only applicable in PWM mode): 50
+      Output: GTIOCA Output Enabled: True
+      Output: GTIOCA Stop Level: Pin Level Low
+      Output: GTIOCB Output Enabled: False
+      Output: GTIOCB Stop Level: Pin Level Low
+      Input: Count Up Source: 
+      Input: Count Down Source: 
+      Input: Start Source: 
+      Input: Stop Source: 
+      Input: Clear Source: 
+      Input: Capture A Source: 
+      Input: Capture B Source: 
+      Input: Noise Filter A Sampling Clock Select: No Filter
+      Input: Noise Filter B Sampling Clock Select: No Filter
+      Pin Polarity: GTIOCnA Polarity: Normal
+      Pin Polarity: GTIOCnB Polarity: Normal
+      Interrupts: Callback: NULL
+      Interrupts: Overflow/Crest Interrupt Priority: Disabled
+      Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+      Interrupts: Capture/Compare match B Interrupt Priority: Disabled
+      Interrupts: Compare Match C Interrupt Priority: Disabled
+      Interrupts: Compare Match D Interrupt Priority: Disabled
+      Interrupts: Compare Match E Interrupt Priority: Disabled
+      Interrupts: Compare Match F Interrupt Priority: Disabled
+      Interrupts: Underflow/Trough Interrupt Priority: Disabled
+      Extra Features: Extra Features: Disabled
+      Extra Features: Output Disable: POEG Link: POEG Channel 0
+      Extra Features: Output Disable: Output Disable POEG Trigger: 
+      Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
+      Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+      Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+      Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+      Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
+      Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
+      Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
+      Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
+      Extra Features: Output Disable: GTIOCA Disable Setting: Disable Prohibited
+      Extra Features: Output Disable: GTIOCB Disable Setting: Disable Prohibited
+      
+    Instance "g_ir_rx_irq External IRQ (r_icu)"
+      Name: g_ir_rx_irq
+      Channel: 10
+      Trigger: Both Edges
+      Digital Filtering: Enabled
+      Filter Source: PCLK filter
+      Digital Filtering Sample Clock (Only valid when Digital Filtering is Enabled): PCLK / 8
+      Callback: irremote_ra4m2_recv_external_irq_callback
+      Pin Interrupt Priority: Priority 2
+      
+    Instance "g_esp_uart UART (r_sci_uart)"
+      General: Name: g_esp_uart
+      General: Channel: 9
+      General: Data Bits: 8bits
+      General: Parity: None
+      General: Stop Bits: 1bit
+      Baud: Baud Rate: 115200
+      Baud: Baud Rate Modulation: Disabled
+      Baud: Max Error (%): 5
+      Flow Control: CTS/RTS Selection: Hardware RTS
+      Flow Control: Software RTS Port: Disabled
+      Flow Control: Software RTS Pin: Disabled
+      Extra: Clock Source: Internal Clock
+      Extra: Start bit detection: Falling Edge
+      Extra: Noise Filter: Disable
+      Extra: Receive FIFO Trigger Level: Max
+      Extra: IrDA: Enable: Disabled
+      Extra: IrDA: RXD Polarity Switching: Normal
+      Extra: IrDA: TXD Polarity Switching: Normal
+      Extra: RS-485: DE Pin: Disable
+      Extra: RS-485: DE Pin Polarity: Active High
+      Extra: RS-485: DE Port Number: Disabled
+      Extra: RS-485: DE Pin Number: Disabled
+      Interrupts: Callback: esp_uart_callback
+      Interrupts: Receive Interrupt Priority: Priority 3
+      Interrupts: Transmit Data Empty Interrupt Priority: Priority 3
+      Interrupts: Transmit End Interrupt Priority: Priority 3
+      Interrupts: Error Interrupt Priority: Priority 3
       

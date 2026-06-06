@@ -52,9 +52,10 @@
     <pincfg active="true" name="" symbol="">
       <configSetting altId="debug0.swclk.p300" configurationId="debug0.swclk" isUsedByDriver="true" peripheral="DEBUG0"/>
       <configSetting altId="debug0.swdio.p108" configurationId="debug0.swdio" isUsedByDriver="true" peripheral="DEBUG0"/>
-      <configSetting altId="gpt4.gtioca.p115" configurationId="gpt4.gtioca" peripheral="GPT4"/>
-      <configSetting altId="p005.input" configurationId="p005"/>
-      <configSetting altId="p005.gpio_mode.gpio_mode_in" configurationId="p005.gpio_mode"/>
+      <configSetting altId="gpt4.gtioca.p115" configurationId="gpt4.gtioca" isUsedByDriver="true" peripheral="GPT4"/>
+      <configSetting altId="irq0.irq10.p005" configurationId="irq0.irq10" isUsedByDriver="true" peripheral="ICU0"/>
+      <configSetting altId="p005.gpio_irq.gpio_irq_enabled" configurationId="p005.gpio_irq"/>
+      <configSetting altId="p005.gpio_mode.gpio_mode_irq" configurationId="p005.gpio_mode"/>
       <configSetting altId="p108.gpio_mode.gpio_mode_peripheral" configurationId="p108.gpio_mode"/>
       <configSetting altId="p109.gpio_mode.gpio_mode_peripheral" configurationId="p109.gpio_mode"/>
       <configSetting altId="p110.gpio_mode.gpio_mode_peripheral" configurationId="p110.gpio_mode"/>
@@ -86,8 +87,8 @@
       <configSetting altId="qspi0.qssl.p501" configurationId="qspi0.qssl" peripheral="QSPI0"/>
       <configSetting altId="sci4.rxd.p206" configurationId="sci4.rxd" peripheral="SCI4"/>
       <configSetting altId="sci4.txd.p207" configurationId="sci4.txd" peripheral="SCI4"/>
-      <configSetting altId="sci9.rxd.p601" configurationId="sci9.rxd" peripheral="SCI9"/>
-      <configSetting altId="sci9.txd.p602" configurationId="sci9.txd" peripheral="SCI9"/>
+      <configSetting altId="sci9.rxd.p601" configurationId="sci9.rxd" isUsedByDriver="true" peripheral="SCI9"/>
+      <configSetting altId="sci9.txd.p602" configurationId="sci9.txd" isUsedByDriver="true" peripheral="SCI9"/>
       <configSetting altId="spi0.miso.p110" configurationId="spi0.miso" peripheral="SPI0"/>
       <configSetting altId="spi0.mosi.p109" configurationId="spi0.mosi" peripheral="SPI0"/>
       <configSetting altId="spi0.rspck.p111" configurationId="spi0.rspck" peripheral="SPI0"/>

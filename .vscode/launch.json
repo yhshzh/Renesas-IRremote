@@ -6,7 +6,7 @@
       "type": "cortex-debug",
       "request": "attach",
       "cwd": "${workspaceFolder}",
-      "executable": "${workspaceFolder}/build/Debug/Renesas_IRremote.elf",
+      "executable": "${workspaceFolder}/build/App/Renesas_IRremote.elf",
       "servertype": "external",
       "gdbTarget": "localhost:3333",
       "runToEntryPoint": "main",

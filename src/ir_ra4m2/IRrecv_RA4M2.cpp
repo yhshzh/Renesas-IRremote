@@ -19,8 +19,16 @@
 #define IRREMOTE_RA4M2_RECV_START_TIMEOUT_US 50000UL
 #endif
 
+#ifndef IRREMOTE_RA4M2_USE_IRQ_RECV
+#define IRREMOTE_RA4M2_USE_IRQ_RECV 0
+#endif
+
 #ifndef IRREMOTE_RA4M2_USE_SYSTICK_RECV
 #define IRREMOTE_RA4M2_USE_SYSTICK_RECV 1
+#endif
+
+#if IRREMOTE_RA4M2_USE_IRQ_RECV && IRREMOTE_RA4M2_USE_SYSTICK_RECV
+#error "IRREMOTE_RA4M2_USE_IRQ_RECV and IRREMOTE_RA4M2_USE_SYSTICK_RECV cannot both be enabled."
 #endif
 
 #ifndef IRREMOTE_RA4M2_RECV_SYSTICK_US
@@ -36,9 +44,9 @@ namespace
 atomic_irparams_t g_params;
 uint16_t g_recvpin = 0;
 
-#if IRREMOTE_RA4M2_USE_SYSTICK_RECV
-volatile bool g_systick_running = false;
+#if IRREMOTE_RA4M2_USE_IRQ_RECV || IRREMOTE_RA4M2_USE_SYSTICK_RECV
 volatile bool g_capture_enabled = false;
+volatile bool g_systick_running = false;
 volatile int g_last_level = HIGH;
 volatile uint32_t g_last_edge_us = 0;
 #endif
@@ -138,6 +146,119 @@ void capture_systick_sample()
 }
 #endif
 
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+bool open_external_irq()
+{
+    fsp_err_t err = g_ir_rx_irq.p_api->open(g_ir_rx_irq.p_ctrl, g_ir_rx_irq.p_cfg);
+    return (FSP_SUCCESS == err) || (FSP_ERR_ALREADY_OPEN == err);
+}
+
+bool start_external_irq()
+{
+    if (!open_external_irq())
+    {
+        return false;
+    }
+
+    return FSP_SUCCESS == g_ir_rx_irq.p_api->enable(g_ir_rx_irq.p_ctrl);
+}
+
+void stop_external_irq()
+{
+    (void) g_ir_rx_irq.p_api->disable(g_ir_rx_irq.p_ctrl);
+}
+
+void configure_irq_pin(bool pullup)
+{
+    uint32_t cfg = IOPORT_CFG_IRQ_ENABLE | IOPORT_CFG_PORT_DIRECTION_INPUT;
+    if (pullup)
+    {
+        cfg |= IOPORT_CFG_PULLUP_ENABLE;
+    }
+
+    (void) R_IOPORT_PinCfg(&g_ioport_ctrl,
+                           static_cast<bsp_io_port_pin_t>(g_recvpin),
+                           cfg);
+}
+
+void capture_irq_edge()
+{
+    if (!g_capture_enabled || (g_params.rawbuf == NULL) ||
+        (g_params.rcvstate == kStopState))
+    {
+        return;
+    }
+
+    const int active_level = IRREMOTE_RA4M2_RECV_ACTIVE_LEVEL;
+    const int current_level = digitalRead(g_recvpin);
+    const uint32_t now = micros();
+
+    if (g_params.rcvstate == kIdleState)
+    {
+        if (current_level == active_level)
+        {
+            g_params.rawlen = 0;
+            g_params.overflow = false;
+            g_params.rawbuf[g_params.rawlen++] = 1;
+            g_last_level = current_level;
+            g_last_edge_us = now;
+            g_params.rcvstate = kMarkState;
+        }
+        else
+        {
+            g_last_level = current_level;
+            g_last_edge_us = now;
+        }
+
+        return;
+    }
+
+    const uint32_t elapsed = elapsed_since(g_last_edge_us, now);
+
+    if (current_level == g_last_level)
+    {
+        return;
+    }
+
+    if (g_params.rawlen >= g_params.bufsize)
+    {
+        g_params.overflow = true;
+        g_params.rcvstate = kStopState;
+        return;
+    }
+
+    g_params.rawbuf[g_params.rawlen++] = usecs_to_ticks(elapsed);
+    g_last_level = current_level;
+    g_last_edge_us = now;
+    g_params.rcvstate = (current_level == active_level) ? kMarkState : kSpaceState;
+}
+
+void capture_irq_timeout()
+{
+    if (!g_capture_enabled || (g_params.rawbuf == NULL) ||
+        (g_params.rcvstate == kStopState) ||
+        (g_params.rcvstate == kIdleState))
+    {
+        return;
+    }
+
+    const uint32_t elapsed = elapsed_since(g_last_edge_us, micros());
+    if ((g_params.rcvstate == kSpaceState) &&
+        (elapsed >= MS_TO_USEC(g_params.timeout)) &&
+        (g_params.rawlen > 1U))
+    {
+        g_params.rcvstate = kStopState;
+    }
+    else if ((g_params.rcvstate == kMarkState) &&
+             (elapsed >= MS_TO_USEC(g_params.timeout)))
+    {
+        g_params.overflow = true;
+        g_params.rcvstate = kStopState;
+    }
+}
+#endif
+
+#if !IRREMOTE_RA4M2_USE_IRQ_RECV
 bool capture_polling()
 {
     const int active_level = IRREMOTE_RA4M2_RECV_ACTIVE_LEVEL;
@@ -195,12 +316,21 @@ bool capture_polling()
     g_params.rcvstate = kStopState;
     return g_params.rawlen > 1;
 }
+#endif
 }
 
 #if IRREMOTE_RA4M2_USE_SYSTICK_RECV
 extern "C" void SysTick_Handler(void)
 {
     capture_systick_sample();
+}
+#endif
+
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+extern "C" void irremote_ra4m2_recv_external_irq_callback(external_irq_callback_args_t *p_args)
+{
+    (void) p_args;
+    capture_irq_edge();
 }
 #endif
 
@@ -246,7 +376,12 @@ IRrecv::~IRrecv(void)
 
 void IRrecv::enableIRIn(const bool pullup)
 {
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+    configure_irq_pin(pullup);
+    (void) start_external_irq();
+#else
     pinMode(g_recvpin, pullup ? INPUT_PULLUP : INPUT);
+#endif
 #if IRREMOTE_RA4M2_USE_SYSTICK_RECV
     (void) start_systick();
 #endif
@@ -256,6 +391,9 @@ void IRrecv::enableIRIn(const bool pullup)
 void IRrecv::disableIRIn(void)
 {
     pause();
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+    stop_external_irq();
+#endif
 #if IRREMOTE_RA4M2_USE_SYSTICK_RECV
     stop_systick();
 #endif
@@ -263,7 +401,7 @@ void IRrecv::disableIRIn(void)
 
 void IRrecv::pause(void)
 {
-#if IRREMOTE_RA4M2_USE_SYSTICK_RECV
+#if IRREMOTE_RA4M2_USE_IRQ_RECV || IRREMOTE_RA4M2_USE_SYSTICK_RECV
     g_capture_enabled = false;
 #endif
     g_params.rcvstate = kStopState;
@@ -276,9 +414,13 @@ void IRrecv::resume(void)
     g_params.rcvstate = kIdleState;
     g_params.rawlen = 0;
     g_params.overflow = false;
-#if IRREMOTE_RA4M2_USE_SYSTICK_RECV
+#if IRREMOTE_RA4M2_USE_IRQ_RECV || IRREMOTE_RA4M2_USE_SYSTICK_RECV
     g_last_level = digitalRead(g_recvpin);
     g_last_edge_us = micros();
+#endif
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+    g_capture_enabled = true;
+#elif IRREMOTE_RA4M2_USE_SYSTICK_RECV
     g_capture_enabled = g_systick_running;
 #endif
 }
@@ -339,6 +481,13 @@ bool IRrecv::decode(decode_results *results, irparams_t *save,
     }
     else
 #endif
+#if IRREMOTE_RA4M2_USE_IRQ_RECV
+    capture_irq_timeout();
+    if ((g_params.rcvstate != kStopState) || (g_params.rawlen == 0U))
+    {
+        return false;
+    }
+#elif !IRREMOTE_RA4M2_USE_SYSTICK_RECV
     if (g_params.rcvstate != kStopState)
     {
         if (!capture_polling())
@@ -346,6 +495,7 @@ bool IRrecv::decode(decode_results *results, irparams_t *save,
             return false;
         }
     }
+#endif
 
     if (!g_params.overflow && (g_params.rawlen < g_params.bufsize))
     {

@@ -1,0 +1,17 @@
+T902DC40 000:000.983   SEGGER J-Link V9.14a Log File
+T902DC40 000:001.188   DLL Compiled: Jan 28 2026 17:20:07
+T902DC40 000:001.190   Logging started @ 2026-06-06 13:37
+T902DC40 000:001.191   Process: /home/zheng/.eclipse/com.renesas.platform_2115159841/DebugComp/RA/e2-server-gdb
+T902DC40 000:001.192 - 1.192ms 
+T902DC40 000:001.199 JLINK_GetDLLVersion()
+T902DC40 000:001.200 - 0.002ms returns 91401
+T902DC40 000:002.097 JLINK_OpenEx(...)
+T902DC40 000:003.411   Looking for J-Link GUI Server exe at: ARM/Segger_v9.14.1/JLinkGUIServerExe
+T902DC40 000:003.421   Looking for J-Link GUI Server exe at: /opt/SEGGER/JLink/JLinkGUIServerExe
+T902DC40 000:003.424   Forking J-Link GUI Server: /opt/SEGGER/JLink/JLinkGUIServerExe
+T902DC40 000:014.430   J-Link GUI Server info: "J-Link GUI server V9.48 "
+T902DC40 001:074.464 - 1072.367ms returns "Failed to open DLL"
+T902DC40 002:652.156 JLINK_Close()
+T902DC40 002:653.231 - 1.076ms
+T902DC40 002:653.242   
+T902DC40 002:653.244   Closed

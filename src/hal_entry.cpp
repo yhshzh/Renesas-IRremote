@@ -3,6 +3,7 @@
 #include "IRac.h"
 #include "IRrecv.h"
 #include "IRsend.h"
+#include "app/remote_controller.h"
 #include "ir_Coolix.h"
 
 #ifndef IRREMOTE_RA4M2_SEND_DEMO
@@ -261,9 +262,13 @@ void hal_entry(void)
         }
     }
 #else
+    RemoteController controller;
+    controller.begin();
+
     while (true)
     {
-        __WFI();
+        controller.poll();
+        delay(2);
     }
 #endif
 }

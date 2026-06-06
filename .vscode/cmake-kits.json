@@ -1,14 +1,31 @@
 [
   {
-    "name": "ARM GCC - Ninja - RECV_DEMO",
-    "description": "Kit with toolchain file and toolchain path in environment",
+    "name": "ARM GCC - RA4M2 App",
+    "description": "RA4M2 application firmware: ESP-AT transport, IR RX external IRQ, IR TX GPT carrier.",
     "toolchainFile": "${workspaceFolder}/cmake/gcc.cmake",
     "cmakeSettings": {
-      "ARM_TOOLCHAIN_PATH": "${env:ARM_GCC_TOOLCHAIN_PATH}",
-      "IRREMOTE_RA4M2_RECV_DEMO": "ON",
+      "ARM_TOOLCHAIN_PATH": "/usr/bin",
+      "CMAKE_BUILD_TYPE": "Debug",
+      "IRREMOTE_RA4M2_RECV_DEMO": "OFF",
       "IRREMOTE_RA4M2_SEND_DEMO": "OFF",
+      "IRREMOTE_RA4M2_USE_IRQ_RECV": "ON",
+      "IRREMOTE_RA4M2_USE_SYSTICK_RECV": "OFF",
+      "IRREMOTE_RA4M2_USE_GPT_SEND": "ON",
       "IRREMOTE_RA4M2_RECV_BUFFER_SIZE": "1024",
-      "IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE": "1024"
+      "IRREMOTE_RA4M2_RECV_TIMEOUT_MS": "50",
+      "IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE": "1024",
+      "IRREMOTE_RA4M2_DEMO_RX_PIN": "BSP_IO_PORT_00_PIN_05",
+      "IRREMOTE_RA4M2_DEMO_TX_PIN": "BSP_IO_PORT_01_PIN_15",
+      "APP_IR_RX_PIN": "BSP_IO_PORT_00_PIN_05",
+      "APP_IR_TX_PIN": "BSP_IO_PORT_01_PIN_15",
+      "APP_IR_RECV_BUFFER_SIZE": "1024",
+      "APP_IR_RECV_TIMEOUT_MS": "50",
+      "APP_TRANSPORT_UART_BAUD": "115200",
+      "APP_TRANSPORT_TCP_PORT": "8765",
+      "APP_BLE_GATT_SERVICE_INDEX": "1",
+      "APP_BLE_GATT_WRITE_CHAR_INDEX": "5",
+      "APP_BLE_GATT_NOTIFY_CHAR_INDEX": "6",
+      "APP_BLE_NOTIFY_CHUNK_SIZE": "20"
     },
     "preferredGenerator": {
       "name": "Ninja"
@@ -16,11 +33,32 @@
     "isTrusted": true
   },
   {
-    "name": "ARM GCC - Ninja",
-    "description": "Kit with toolchain file and toolchain path in environment",
+    "name": "ARM GCC - RA4M2 App Release",
+    "description": "Release build of the RA4M2 application firmware with the same hardware configuration.",
     "toolchainFile": "${workspaceFolder}/cmake/gcc.cmake",
     "cmakeSettings": {
-      "ARM_TOOLCHAIN_PATH": "${env:ARM_GCC_TOOLCHAIN_PATH}"
+      "ARM_TOOLCHAIN_PATH": "/usr/bin",
+      "CMAKE_BUILD_TYPE": "Release",
+      "IRREMOTE_RA4M2_RECV_DEMO": "OFF",
+      "IRREMOTE_RA4M2_SEND_DEMO": "OFF",
+      "IRREMOTE_RA4M2_USE_IRQ_RECV": "ON",
+      "IRREMOTE_RA4M2_USE_SYSTICK_RECV": "OFF",
+      "IRREMOTE_RA4M2_USE_GPT_SEND": "ON",
+      "IRREMOTE_RA4M2_RECV_BUFFER_SIZE": "1024",
+      "IRREMOTE_RA4M2_RECV_TIMEOUT_MS": "50",
+      "IRREMOTE_RA4M2_DEBUG_RAW_DUMP_SIZE": "1024",
+      "IRREMOTE_RA4M2_DEMO_RX_PIN": "BSP_IO_PORT_00_PIN_05",
+      "IRREMOTE_RA4M2_DEMO_TX_PIN": "BSP_IO_PORT_01_PIN_15",
+      "APP_IR_RX_PIN": "BSP_IO_PORT_00_PIN_05",
+      "APP_IR_TX_PIN": "BSP_IO_PORT_01_PIN_15",
+      "APP_IR_RECV_BUFFER_SIZE": "1024",
+      "APP_IR_RECV_TIMEOUT_MS": "50",
+      "APP_TRANSPORT_UART_BAUD": "115200",
+      "APP_TRANSPORT_TCP_PORT": "8765",
+      "APP_BLE_GATT_SERVICE_INDEX": "1",
+      "APP_BLE_GATT_WRITE_CHAR_INDEX": "5",
+      "APP_BLE_GATT_NOTIFY_CHAR_INDEX": "6",
+      "APP_BLE_NOTIFY_CHUNK_SIZE": "20"
     },
     "preferredGenerator": {
       "name": "Ninja"
